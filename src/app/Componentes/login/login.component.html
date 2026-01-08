@@ -1,0 +1,19 @@
+<div class="login-container">
+  <div class="login-box">
+    <h1>Welcome Back</h1>
+    <p class="subtitle">Enter your username to join the chat</p>
+    
+    <div class="input-group">
+      <input 
+        type="text" 
+        [(ngModel)]="username" 
+        placeholder="Username" 
+        (keyup.enter)="login()"
+      >
+    </div>
+    
+    <button (click)="login()" [disabled]="!username.trim()">
+      Start Chatting
+    </button>
+  </div>
+</div>
