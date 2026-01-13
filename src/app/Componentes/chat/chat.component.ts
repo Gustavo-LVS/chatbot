@@ -1,31 +1,63 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
     selector: 'app-chat',
     standalone: true,
-    imports: [CommonModule],
-    templateUrl: './chat.component.html',
-    styleUrls: ['./chat.component.css']
+    imports: [CommonModule, FontAwesomeModule],
+    templateUrl: './chat.component.html'
 })
-export class ChatComponent {
-    messages: Array<{ text: string, isUser: boolean }> = [
-        { text: 'Olá! Como posso ajudar você hoje?', isUser: false }
-    ];
+export class ChatComponent implements OnInit {
+    messages: Array<{ text: string, isUser: boolean }> = [];
+    username: string = '';
 
-    sendMessage(input: HTMLInputElement) {
+    constructor(private authService: AuthService) { }
+
+    ngOnInit() {
+        this.username = this.authService.getUsername() || 'Usuário';
+    }
+
+    logout() {
+        this.authService.logout();
+    }
+
+    sendMessage(input: HTMLTextAreaElement) {
         const text = input.value.trim();
         if (text) {
             this.messages.push({ text, isUser: true });
             input.value = '';
+            this.resetTextareaHeight(input);
 
-            // Simular resposta
+            // Simular resposta do bot
             setTimeout(() => {
                 this.messages.push({
-                    text: 'Esta é uma resposta simulada.',
+                    text: 'Olá! Sou o ChatBot. Como posso ajudá-lo hoje? Estou aqui para responder suas perguntas e auxiliar no que você precisar.',
                     isUser: false
                 });
-            }, 1000);
+            }, 800);
         }
     }
+
+    handleEnter(event: KeyboardEvent, input: HTMLTextAreaElement) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            this.sendMessage(input);
+        }
+    }
+
+    adjustTextareaHeight(textarea: HTMLTextAreaElement) {
+        // Reset height to recalculate
+        textarea.style.height = 'auto';
+        
+        // Set new height based on scrollHeight (max 200px)
+        const newHeight = Math.min(textarea.scrollHeight, 200);
+        textarea.style.height = newHeight + 'px';
+    }
+
+    resetTextareaHeight(textarea: HTMLTextAreaElement) {
+        textarea.style.height = 'auto';
+    }
 }
+
