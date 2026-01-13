@@ -1,20 +1,105 @@
-<div class="chat-container">
-    <div class="chat-header">
-        <h1>ChatBot</h1>
-    </div>
+<div class="grid grid-cols-[auto_1fr] h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="sidebar scrollbar-thin">
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+            <button class="btn btn-secondary w-full grid place-items-center gap-2">
+                <fa-icon [icon]="['fas', 'plus']"></fa-icon>
+                Novo chat
+            </button>
+        </div>
 
-    <div class="messages-area">
-        <div class="message" *ngFor="let msg of messages" [class.user-message]="msg.isUser">
-            <div class="message-content">
-                {{ msg.text }}
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar-nav scrollbar-thin">
+            <div class="px-2 space-y-1">
+                <div class="sidebar-nav-item active">
+                    <fa-icon [icon]="['fas', 'comment']" class="text-sm"></fa-icon>
+                    <span class="truncate">Como posso ajudar?</span>
+                </div>
+
+                <div class="sidebar-nav-item">
+                    <fa-icon [icon]="['fas', 'comment']" class="text-sm"></fa-icon>
+                    <span class="truncate">Conversa anterior</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Sidebar Footer -->
+        <div class="sidebar-footer">
+            <div class="sidebar-nav-item">
+                <div
+                    class="w-8 h-8 rounded-full bg-emerald-600 grid place-items-center text-white font-semibold text-sm">
+                    <fa-icon [icon]="['fas', 'user']"></fa-icon>
+                </div>
+                <span class="truncate">{{ username }}</span>
             </div>
         </div>
-    </div>
+    </aside>
 
-    <div class="input-area">
-        <input #messageInput type="text" placeholder="Digite sua mensagem..." (keyup.enter)="sendMessage(messageInput)">
-        <button (click)="sendMessage(messageInput)">
-            Enviar
-        </button>
-    </div>
+    <!-- Main Chat Area -->
+    <main class="chat-container">
+        <!-- Chat Header -->
+        <header class="chat-header">
+            <div class="chat-title">
+                ChatBot
+            </div>
+            <div class="grid grid-flow-col gap-3 place-items-center">
+                <button class="btn-icon text-slate-400" title="Configurações">
+                    <fa-icon [icon]="['fas', 'cog']"></fa-icon>
+                </button>
+                <button (click)="logout()" class="btn-icon text-red-400 hover:text-red-300" title="Sair">
+                    <fa-icon [icon]="['fas', 'sign-out-alt']"></fa-icon>
+                </button>
+            </div>
+        </header>
+
+        <!-- Chat Messages -->
+        <div class="chat-messages scrollbar-thin">
+            @if (messages.length === 0) {
+            <!-- Empty State -->
+            <div class="grid place-items-center h-full px-4 text-center">
+                <div class="grid gap-4">
+                    <div class="w-16 h-16 rounded-full bg-slate-700 grid place-items-center mb-4 mx-auto">
+                        <fa-icon [icon]="['fas', 'comment']" size="2x" class="text-slate-400"></fa-icon>
+                    </div>
+                    <h2 class="text-2xl font-semibold text-white mb-2">Como posso ajudar?</h2>
+                    <p class="text-slate-400 max-w-md">Faça uma pergunta ou inicie uma conversa</p>
+                </div>
+            </div>
+            } @else {
+            <!-- Messages List -->
+            @for (msg of messages; track $index) {
+            <div class="message-wrapper animate-fade-in" [ngClass]="msg.isUser ? 'user' : 'assistant'">
+                <div class="message-content">
+                    <div class="message-avatar" [ngClass]="msg.isUser ? 'user' : 'assistant'">
+                        @if (msg.isUser) {
+                        <fa-icon [icon]="['fas', 'user']"></fa-icon>
+                        } @else {
+                        <fa-icon [icon]="['fas', 'comment']"></fa-icon>
+                        }
+                    </div>
+                    <div class="message-text">
+                        {{ msg.text }}
+                    </div>
+                </div>
+            </div>
+            }
+            }
+        </div>
+
+        <!-- Chat Input -->
+        <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+                <textarea #msgInput rows="1" placeholder="Envie uma mensagem..." class="chat-input"
+                    (input)="adjustTextareaHeight(msgInput)"
+                    (keydown.enter)="handleEnter($any($event), msgInput)"></textarea>
+                <button (click)="sendMessage(msgInput)" class="chat-input-send-btn grid place-items-center gap-2">
+                    <fa-icon [icon]="['fas', 'paper-plane']"></fa-icon>
+                </button>
+            </div>
+            <p class="text-center text-xs text-slate-500 mt-3">
+                ChatBot pode cometer erros. Considere verificar informações importantes.
+            </p>
+        </div>
+    </main>
 </div>
