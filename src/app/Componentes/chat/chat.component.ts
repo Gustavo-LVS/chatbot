@@ -28,7 +28,6 @@ export class ChatComponent implements OnInit {
         if (text) {
             this.messages.push({ text, isUser: true });
             input.value = '';
-            this.resetTextareaHeight(input);
 
             // Simular resposta do bot
             setTimeout(() => {
@@ -46,18 +45,4 @@ export class ChatComponent implements OnInit {
             this.sendMessage(input);
         }
     }
-
-    adjustTextareaHeight(textarea: HTMLTextAreaElement) {
-        // Reset height to recalculate
-        textarea.style.height = 'auto';
-        
-        // Set new height based on scrollHeight (max 200px)
-        const newHeight = Math.min(textarea.scrollHeight, 200);
-        textarea.style.height = newHeight + 'px';
-    }
-
-    resetTextareaHeight(textarea: HTMLTextAreaElement) {
-        textarea.style.height = 'auto';
-    }
 }
-

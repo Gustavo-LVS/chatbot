@@ -61,6 +61,7 @@ import {
 import {
   // Brand Icons
   faFacebook,
+  faFacebookSquare,
   faTwitter,
   faInstagram,
   faLinkedin,
@@ -135,6 +136,7 @@ export function initializeIconLibrary(library: FaIconLibrary) {
   // Adiciona todos os ícones de Brands
   library.addIcons(
     faFacebook,
+    faFacebookSquare,
     faTwitter,
     faInstagram,
     faLinkedin,

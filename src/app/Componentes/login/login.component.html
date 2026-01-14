@@ -1,58 +1,106 @@
-<div class="min-h-screen bg-slate-800 grid place-items-center p-6">
-    <div class="w-full max-w-md grid gap-6">
-        <!-- Card de Login -->
-        <div class="bg-slate-900 rounded-2xl shadow-2xl border border-slate-700 grid gap-8 p-10">
-
-            <!-- Logo/Título -->
-            <div class="grid gap-4 justify-items-center text-center">
-                <div class="w-20 h-20 bg-emerald-600 rounded-full grid place-items-center shadow-lg shadow-emerald-900/50">
-                    <fa-icon [icon]="['fas', 'comment']" size="2x" class="text-white"></fa-icon>
+<div class="h-dvh overflow-hidden bg-slate-800 flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        
+        <!-- Card Principal de Login -->
+        <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <!-- Header com Gradiente -->
+            <div class="bg-linear-to-r from-emerald-500 to-emerald-600 py-5 px-6 flex flex-col items-center gap-1.5">
+                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                    <fa-icon [icon]="['fas', 'comment']" class="text-white text-2xl"></fa-icon>
                 </div>
-                <div class="grid gap-2">
-                    <h1 class="text-3xl font-bold text-white">Bem-vindo ao ChatBot</h1>
-                    <p class="text-slate-400 text-sm">Entre para começar a conversar</p>
-                </div>
+                <h1 class="text-xl font-semibold text-white tracking-wide">ChatBot</h1>
             </div>
-
-            <!-- Formulário -->
-            <form (ngSubmit)="login()" class="grid gap-6">
-                <div class="grid gap-3">
-                    <label for="username" class="grid grid-cols-[auto_1fr] items-center gap-2 text-sm font-medium text-slate-300">
-                        <fa-icon [icon]="['fas', 'user']"></fa-icon>
-                        <span>Nome de usuário</span>
-                    </label>
-                    <div class="relative grid">
-                        <div class="absolute inset-y-0 left-0 pl-3 grid place-items-center pointer-events-none">
-                            <fa-icon [icon]="['fas', 'user']" class="text-slate-500"></fa-icon>
-                        </div>
-                        <input id="username" type="text" [(ngModel)]="username" name="username"
-                            placeholder="Digite seu nome" required
-                            class="w-full pl-10 pr-4 py-3.5 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all">
+            
+            <!-- Conteúdo do Card -->
+            <div class="p-5">
+                <!-- Título e Subtítulo -->
+                <div class="text-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-800">Bem-vindo de volta!</h2>
+                </div>
+                
+                <!-- Formulário -->
+                <form #form="ngForm" (ngSubmit)="login(form)" class="space-y-3" novalidate>
+                    <!-- Campo Username -->
+                    <div class="space-y-1.5">
+                        <label for="username" class="block text-sm font-semibold text-gray-700">
+                            Nome de usuário
+                        </label>
+                        <input 
+                            id="username" 
+                            type="text" 
+                            [(ngModel)]="username" 
+                            name="username"
+                            placeholder="Digite seu nome de usuário"
+                            required
+                            minlength="3"
+                            autocomplete="username"
+                            [class]="'w-full px-4 py-2.5 border-2 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all ' + (form.submitted && !username.trim() ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-emerald-500')">
                     </div>
-                </div>
 
-                <button type="submit"
-                    class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-900 grid grid-cols-[1fr_auto] items-center gap-3 shadow-lg shadow-emerald-900/30">
-                    <span class="text-center">Continuar</span>
-                    <fa-icon [icon]="['fas', 'arrow-right']"></fa-icon>
-                </button>
-            </form>
+                    <!-- Campo Senha -->
+                    <div class="space-y-1.5">
+                        <label for="password" class="block text-sm font-semibold text-gray-700">
+                            Senha
+                        </label>
 
-            <!-- Footer -->
-            <div class="grid gap-4 pt-6 border-t border-slate-700">
-                <p class="text-center text-xs text-slate-500 leading-relaxed">
-                    Ao continuar, você concorda com nossos Termos de Uso
-                </p>
+                        <div class="relative">
+                            <input
+                                id="password"
+                                [type]="showPassword ? 'text' : 'password'"
+                                [(ngModel)]="password"
+                                name="password"
+                                placeholder="Digite sua senha"
+                                required
+                                minlength="6"
+                                autocomplete="current-password"
+                                [class]="'w-full pr-12 px-4 py-2.5 border-2 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all ' + (form.submitted && !password ? 'border-red-500 focus:border-red-500' : 'border-gray-200 focus:border-emerald-500')" />
+
+                            <button
+                                type="button"
+                                (click)="togglePasswordVisibility()"
+                                [attr.aria-pressed]="showPassword"
+                                class="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-2 text-gray-500 hover:text-gray-700 focus:outline-none">
+                                <fa-icon [icon]="['fas', showPassword ? 'eye-slash' : 'eye']" class="text-sm"></fa-icon>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Link Esqueceu senha -->
+                    <div class="flex justify-center">
+                        <a href="#" class="text-sm text-emerald-600 hover:text-emerald-700 font-medium hover:underline transition-colors">
+                            Esqueceu a senha?
+                        </a>
+                    </div>
+
+                    <!-- Botão Entrar -->
+                    <button 
+                        type="submit"
+                        [disabled]="isSubmitting"
+                        class="w-full px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-500/50 transition-all shadow-lg shadow-emerald-600/30 hover:shadow-xl hover:shadow-emerald-600/40 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-emerald-600 disabled:active:scale-100">
+                        {{ isSubmitting ? 'Entrando...' : 'Entrar' }}
+                    </button>
+                </form>
             </div>
         </div>
 
-        <!-- Info adicional -->
-        <div class="grid gap-2 justify-items-center">
-            <p class="text-sm text-slate-500">Não tem uma conta?</p>
-            <a href="#" class="text-emerald-500 hover:text-emerald-400 transition-colors grid grid-cols-[auto_auto] items-center gap-2 font-medium">
-                <fa-icon [icon]="['fas', 'user-plus']"></fa-icon>
-                <span>Criar conta</span>
-            </a>
+        <!-- Card Cadastro -->
+        <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-3 mt-3">
+            <p class="text-sm text-center text-gray-300">
+                Não tem uma conta? 
+                <a [routerLink]="['/cadastro']" class="text-emerald-400 hover:text-emerald-300 font-semibold hover:underline transition-colors ml-1">
+                    Cadastre-se
+                </a>
+            </p>
         </div>
+
+        <!-- Footer -->
+        <div class="flex flex-col items-center mt-4">
+            <p class="text-xs text-gray-500 text-center leading-relaxed">
+                Ao continuar, você concorda com nossos<br>
+                <a href="#" class="text-gray-400 hover:text-gray-300 underline transition-colors">Termos de Uso</a> e 
+                <a href="#" class="text-gray-400 hover:text-gray-300 underline transition-colors">Política de Privacidade</a>
+            </p>
+        </div>
+
     </div>
 </div>
