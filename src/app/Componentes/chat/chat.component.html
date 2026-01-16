@@ -1,60 +1,63 @@
 <div class="flex h-screen overflow-hidden bg-slate-800">
     <!-- Sidebar -->
     <aside class="w-64 bg-slate-900 h-screen flex flex-col border-r border-slate-700">
-        <!-- Sidebar Header -->
+        <!-- Logo e Novo Chat -->
         <div class="p-4 border-b border-slate-700">
-            <button class="w-full px-4 py-2.5 bg-slate-700 text-white rounded-xl hover:bg-slate-600 transition-colors flex items-center justify-center gap-2.5 font-medium text-base">
+            <div class="text-white font-semibold text-xl tracking-wide mb-4 text-center">ChatBot</div>
+            <button (click)="createNewChat()" class="w-full px-4 py-2.5 bg-slate-700 text-white rounded-xl hover:bg-slate-600 transition-colors flex items-center justify-center gap-2.5 font-medium text-base">
                 <fa-icon [icon]="['fas', 'plus']" class="text-base"></fa-icon>
                 Novo chat
             </button>
         </div>
 
         <!-- Sidebar Navigation -->
-        <nav class="flex-1 overflow-y-auto py-2">
+        <nav class="flex-1 overflow-y-auto scrollbar-hidden py-2">
             <div class="px-2 flex flex-col gap-1">
-                <div class="flex items-center gap-3 px-4 py-2.5 bg-slate-800 text-white cursor-pointer transition-colors text-sm rounded-xl">
+                @for (chat of chats; track chat.id) {
+                <div 
+                    (click)="selectChat(chat.id)"
+                    class="flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors text-sm rounded-xl"
+                    [ngClass]="chat.id === currentChatId ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800'">
                     <fa-icon [icon]="['fas', 'comment']" class="text-sm"></fa-icon>
-                    <span class="truncate">Como posso ajudar?</span>
+                    <span class="truncate">{{ chat.title }}</span>
                 </div>
-
-                <div class="flex items-center gap-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 cursor-pointer transition-colors text-sm rounded-xl">
-                    <fa-icon [icon]="['fas', 'comment']" class="text-sm"></fa-icon>
-                    <span class="truncate">Conversa anterior</span>
-                </div>
+                }
             </div>
         </nav>
 
-        <!-- Sidebar Footer -->
-        <div class="p-4 border-t border-slate-700">
-            <div class="flex items-center gap-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 cursor-pointer transition-colors text-sm rounded-xl">
+        <!-- Sidebar Footer com Menu do Usuário -->
+        <div class="p-4 border-t border-slate-700 relative">
+            <!-- Menu dropdown (aparece ao clicar no usuário) -->
+            @if (showUserMenu) {
+            <div class="absolute bottom-full left-4 right-4 mb-2 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-lg">
+                <button class="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-700 transition-colors text-sm">
+                    <fa-icon [icon]="['fas', 'cog']" class="text-base"></fa-icon>
+                    Configurações
+                </button>
+                <button (click)="logout()" class="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-slate-700 transition-colors text-sm">
+                    <fa-icon [icon]="['fas', 'sign-out-alt']" class="text-base"></fa-icon>
+                    Sair
+                </button>
+            </div>
+            }
+            <div (click)="toggleUserMenu()" class="flex items-center gap-3 px-4 py-2.5 text-slate-300 hover:bg-slate-800 cursor-pointer transition-colors text-sm rounded-xl">
                 <div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white">
                     <fa-icon [icon]="['fas', 'user']"></fa-icon>
                 </div>
-                <span class="truncate">{{ username }}</span>
+                <span class="truncate flex-1">{{ username }}</span>
+                <fa-icon [icon]="['fas', 'chevron-up']" class="text-xs" [ngClass]="showUserMenu ? 'rotate-180' : ''"></fa-icon>
             </div>
         </div>
     </aside>
 
     <!-- Main Chat Area -->
     <main class="flex-1 flex flex-col bg-slate-800 h-screen">
-        <!-- Chat Header -->
-        <header class="bg-slate-900 border-b border-slate-700 px-5 py-4 flex items-center justify-between">
-            <div class="text-white font-semibold text-xl tracking-wide">ChatBot</div>
-            <div class="flex gap-3 items-center">
-                <button class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-300 hover:bg-slate-700 transition-colors" title="Configurações">
-                    <fa-icon [icon]="['fas', 'cog']" class="text-lg"></fa-icon>
-                </button>
-                <button (click)="logout()" class="w-11 h-11 rounded-xl flex items-center justify-center text-red-300 hover:bg-slate-700 transition-colors" title="Sair">
-                    <fa-icon [icon]="['fas', 'sign-out-alt']" class="text-lg"></fa-icon>
-                </button>
-            </div>
-        </header>
 
         <!-- Chat Messages -->
-        <div class="flex-1 overflow-y-auto">
+        <div #messagesContainer class="flex-1 overflow-y-auto scrollbar-hidden px-4 py-6">
             @if (messages.length === 0) {
             <!-- Empty State -->
-            <div class="flex items-center justify-center h-full px-4 text-center">
+            <div class="flex items-center justify-center h-full text-center">
                 <div class="flex flex-col gap-4">
                     <div class="w-16 h-16 rounded-full bg-slate-700 flex items-center justify-center mb-4 mx-auto">
                         <fa-icon [icon]="['fas', 'comment']" size="2x" class="text-slate-400"></fa-icon>
@@ -65,22 +68,19 @@
             </div>
             } @else {
             <!-- Messages List -->
-            @for (msg of messages; track $index) {
-            <div class="w-full border-b border-slate-700/50" [ngClass]="msg.isUser ? 'bg-slate-800' : 'bg-[#1a2332]'">
-                <div class="max-w-3xl mx-auto px-4 py-6 flex gap-4">
-                    <div [ngClass]="msg.isUser ? 'bg-emerald-600' : 'bg-slate-600'" class="w-8 h-8 rounded-sm flex items-center justify-center text-white shrink-0">
-                        @if (msg.isUser) {
-                        <fa-icon [icon]="['fas', 'user']"></fa-icon>
-                        } @else {
-                        <fa-icon [icon]="['fas', 'comment']"></fa-icon>
-                        }
-                    </div>
-                    <div class="flex-1 text-slate-100 leading-relaxed text-[15px]">
+            <div class="max-w-3xl mx-auto flex flex-col gap-4">
+                @for (msg of messages; track $index) {
+                <div class="flex" [ngClass]="msg.isUser ? 'justify-end' : 'justify-start'">
+                    <div 
+                        class="max-w-[75%] px-4 py-3 rounded-2xl text-[15px] leading-relaxed"
+                        [ngClass]="msg.isUser 
+                            ? 'bg-emerald-600 text-white rounded-br-md' 
+                            : 'bg-slate-700 text-slate-100 rounded-bl-md'">
                         {{ msg.text }}
                     </div>
                 </div>
+                }
             </div>
-            }
             }
         </div>
 
