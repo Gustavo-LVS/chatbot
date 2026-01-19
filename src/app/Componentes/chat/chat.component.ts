@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked } from '@ang
 import { CommonModule } from '@angular/common';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { AuthService } from '../../services/auth.service';
+import { OllamaService, OllamaMessage } from '../../services/ollama.service';
 
 interface ChatMessage {
     text: string;
@@ -12,12 +13,8 @@ interface Chat {
     id: string;
     title: string;
     messages: ChatMessage[];
+    history: OllamaMessage[]; // Histórico para contexto do Ollama
 }
-
-/** Delay em ms para simular resposta do bot */
-const BOT_RESPONSE_DELAY_MS = 800;
-
-const BOT_DEFAULT_RESPONSE = 'Olá! Sou o ChatBot. Como posso ajudá-lo hoje? Estou aqui para responder suas perguntas e auxiliar no que você precisar.';
 
 @Component({
     selector: 'app-chat',
@@ -32,6 +29,8 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     currentChatId: string = '';
     username = '';
     showUserMenu = false;
+    isLoading = false;
+    ollamaAvailable = false;
     private shouldScroll = false;
 
     get messages(): ChatMessage[] {
@@ -42,11 +41,20 @@ export class ChatComponent implements OnInit, AfterViewChecked {
         return this.chats.find(c => c.id === this.currentChatId);
     }
 
-    constructor(private authService: AuthService) {}
+    constructor(
+        private authService: AuthService,
+        private ollamaService: OllamaService
+    ) {}
 
-    ngOnInit(): void {
+    async ngOnInit(): Promise<void> {
         this.username = this.authService.getUsername() || 'Usuário';
         this.createNewChat();
+        
+        // Verifica se o Ollama está disponível
+        this.ollamaAvailable = await this.ollamaService.isAvailable();
+        if (!this.ollamaAvailable) {
+            console.warn('Ollama não está disponível. Execute: docker-compose up -d');
+        }
     }
 
     ngAfterViewChecked(): void {
@@ -72,7 +80,6 @@ export class ChatComponent implements OnInit, AfterViewChecked {
     }
 
     createNewChat(): void {
-        // Se o chat atual estiver vazio, não cria outro
         if (this.currentChat && this.currentChat.messages.length === 0) {
             return;
         }
@@ -80,7 +87,13 @@ export class ChatComponent implements OnInit, AfterViewChecked {
         const newChat: Chat = {
             id: crypto.randomUUID(),
             title: 'Novo chat',
-            messages: []
+            messages: [],
+            history: [
+                {
+                    role: 'system',
+                    content: 'Você é um assistente útil e amigável. Responda em português de forma clara e concisa.'
+                }
+            ]
         };
         this.chats.unshift(newChat);
         this.currentChatId = newChat.id;
@@ -88,25 +101,72 @@ export class ChatComponent implements OnInit, AfterViewChecked {
 
     selectChat(chatId: string): void {
         this.currentChatId = chatId;
+        this.shouldScroll = true;
     }
 
-    sendMessage(input: HTMLTextAreaElement): void {
+    async sendMessage(input: HTMLTextAreaElement): Promise<void> {
         const text = input.value.trim();
-        if (!text || !this.currentChat) return;
+        if (!text || !this.currentChat || this.isLoading) return;
 
         // Atualiza o título do chat com a primeira mensagem
         if (this.currentChat.messages.length === 0) {
             this.currentChat.title = text.length > 30 ? text.substring(0, 30) + '...' : text;
         }
 
+        // Adiciona mensagem do usuário
         this.currentChat.messages.push({ text, isUser: true });
+        this.currentChat.history.push({ role: 'user', content: text });
         input.value = '';
         this.shouldScroll = true;
+        
+        // Inicia o loading
+        this.isLoading = true;
 
-        setTimeout(() => {
-            this.currentChat?.messages.push({ text: BOT_DEFAULT_RESPONSE, isUser: false });
-            this.shouldScroll = true;
-        }, BOT_RESPONSE_DELAY_MS);
+        // Adiciona mensagem vazia do bot (será preenchida com streaming)
+        const botMessageIndex = this.currentChat.messages.length;
+        this.currentChat.messages.push({ text: '', isUser: false });
+
+        try {
+            if (!this.ollamaAvailable) {
+                // Fallback se Ollama não estiver disponível
+                this.currentChat.messages[botMessageIndex].text = 
+                    '⚠️ Ollama não está disponível. Execute `docker-compose up -d` e baixe o modelo com `docker exec ollama ollama pull tinyllama`';
+                return;
+            }
+
+            // Usa streaming para mostrar resposta gradualmente
+            this.ollamaService.chatStream(this.currentChat.history).subscribe({
+                next: (content) => {
+                    if (this.currentChat) {
+                        this.currentChat.messages[botMessageIndex].text = content;
+                        this.shouldScroll = true;
+                    }
+                },
+                error: (error) => {
+                    console.error('Erro ao comunicar com Ollama:', error);
+                    if (this.currentChat) {
+                        this.currentChat.messages[botMessageIndex].text = 
+                            '❌ Erro ao conectar com o Ollama. Verifique se está rodando.';
+                    }
+                    this.isLoading = false;
+                },
+                complete: () => {
+                    // Adiciona resposta ao histórico
+                    if (this.currentChat) {
+                        this.currentChat.history.push({
+                            role: 'assistant',
+                            content: this.currentChat.messages[botMessageIndex].text
+                        });
+                    }
+                    this.isLoading = false;
+                }
+            });
+        } catch (error) {
+            console.error('Erro:', error);
+            this.currentChat.messages[botMessageIndex].text = 
+                '❌ Erro inesperado. Tente novamente.';
+            this.isLoading = false;
+        }
     }
 
     handleEnter(event: KeyboardEvent, input: HTMLTextAreaElement): void {
