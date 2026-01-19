@@ -67,16 +67,25 @@
                 </div>
             </div>
             } @else {
+                
             <!-- Messages List -->
             <div class="max-w-3xl mx-auto flex flex-col gap-4">
                 @for (msg of messages; track $index) {
                 <div class="flex" [ngClass]="msg.isUser ? 'justify-end' : 'justify-start'">
                     <div 
-                        class="max-w-[75%] px-4 py-3 rounded-2xl text-[15px] leading-relaxed"
+                        class="max-w-[75%] px-4 py-3 rounded-2xl text-[15px] leading-relaxed whitespace-pre-wrap"
                         [ngClass]="msg.isUser 
                             ? 'bg-emerald-600 text-white rounded-br-md' 
                             : 'bg-slate-700 text-slate-100 rounded-bl-md'">
-                        {{ msg.text }}
+                        @if (!msg.isUser && msg.text === '' && isLoading) {
+                            <div class="flex items-center gap-1">
+                                <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+                                <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+                                <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+                            </div>
+                        } @else {
+                            {{ msg.text }}
+                        }
                     </div>
                 </div>
                 }
@@ -90,13 +99,22 @@
                 <textarea 
                     #msgInput 
                     rows="1" 
-                    placeholder="Envie uma mensagem..." 
-                    class="w-full bg-slate-700 text-white rounded-2xl border border-slate-600 focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500/50 placeholder-slate-400 pr-14 px-4 py-3.5 text-base leading-relaxed align-middle"
+                    [placeholder]="isLoading ? 'Aguarde a resposta...' : 'Envie uma mensagem...'"
+                    [disabled]="isLoading"
+                    class="w-full bg-slate-700 text-white rounded-2xl border border-slate-600 focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500/50 placeholder-slate-400 pr-14 px-4 py-3.5 text-base leading-relaxed align-middle disabled:opacity-50 disabled:cursor-not-allowed"
                     style="resize: none; max-height: 180px;"
                     (keydown.enter)="handleEnter($any($event), msgInput)"></textarea>
                 <div class="absolute inset-y-0 right-3 flex items-center">
-                    <button (click)="sendMessage(msgInput)" class="w-10 h-10 rounded-xl bg-slate-600 hover:bg-emerald-600 grid place-items-center text-white transition-colors leading-none">
-                        <fa-icon [icon]="['fas', 'paper-plane']" class="text-lg block"></fa-icon>
+                    <button 
+                        (click)="sendMessage(msgInput)" 
+                        [disabled]="isLoading"
+                        class="w-10 h-10 rounded-xl grid place-items-center text-white transition-colors leading-none disabled:opacity-50 disabled:cursor-not-allowed"
+                        [ngClass]="isLoading ? 'bg-slate-600' : 'bg-slate-600 hover:bg-emerald-600'">
+                        @if (isLoading) {
+                            <fa-icon [icon]="['fas', 'spinner']" class="text-lg block animate-spin"></fa-icon>
+                        } @else {
+                            <fa-icon [icon]="['fas', 'paper-plane']" class="text-lg block"></fa-icon>
+                        }
                     </button>
                 </div>
             </div>
