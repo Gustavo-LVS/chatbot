@@ -42,7 +42,11 @@ import {
   faInfoCircle,
   faCheckCircle,
   faTimesCircle,
-  faSignOutAlt
+  faSignOutAlt,
+  faSignInAlt,
+  faShieldAlt,
+  faStop,
+  faPlay
 } from '@fortawesome/free-solid-svg-icons';
 
 import {
@@ -117,7 +121,11 @@ export function initializeIconLibrary(library: FaIconLibrary) {
     faInfoCircle,
     faCheckCircle,
     faTimesCircle,
-    faSignOutAlt
+    faSignOutAlt,
+    faSignInAlt,
+    faShieldAlt,
+    faStop,
+    faPlay
   );
 
   // Adiciona todos os ícones Regular
