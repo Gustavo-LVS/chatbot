@@ -99,23 +99,32 @@
                 <textarea 
                     #msgInput 
                     rows="1" 
-                    [placeholder]="isLoading ? 'Aguarde a resposta...' : 'Envie uma mensagem...'"
-                    [disabled]="isLoading"
-                    class="w-full bg-slate-700 text-white rounded-2xl border border-slate-600 focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500/50 placeholder-slate-400 pr-14 px-4 py-3.5 text-base leading-relaxed align-middle disabled:opacity-50 disabled:cursor-not-allowed"
+                    [placeholder]="isLoading ? 'Aguarde a resposta...' : canContinue ? 'Clique para continuar...' : 'Envie uma mensagem...'"
+                    [disabled]="isLoading || canContinue"
+                    class="w-full bg-slate-700 text-white rounded-2xl border border-slate-600 focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500/50 placeholder-slate-400 pr-14 px-4 py-3.5 text-base leading-relaxed align-middle disabled:opacity-50 disabled:cursor-not-allowed overflow-y-auto scrollbar-hidden"
                     style="resize: none; max-height: 180px;"
+                    (input)="autoResize(msgInput)"
                     (keydown.enter)="handleEnter($any($event), msgInput)"></textarea>
                 <div class="absolute inset-y-0 right-3 flex items-center">
-                    <button 
-                        (click)="sendMessage(msgInput)" 
-                        [disabled]="isLoading"
-                        class="w-10 h-10 rounded-xl grid place-items-center text-white transition-colors leading-none disabled:opacity-50 disabled:cursor-not-allowed"
-                        [ngClass]="isLoading ? 'bg-slate-600' : 'bg-slate-600 hover:bg-emerald-600'">
-                        @if (isLoading) {
-                            <fa-icon [icon]="['fas', 'spinner']" class="text-lg block animate-spin"></fa-icon>
-                        } @else {
+                    @if (isLoading) {
+                        <button 
+                            (click)="stopResponse()"
+                            class="w-10 h-10 rounded-xl grid place-items-center text-white bg-red-600 hover:bg-red-700 transition-colors leading-none">
+                            <fa-icon [icon]="['fas', 'stop']" class="text-lg block"></fa-icon>
+                        </button>
+                    } @else if (canContinue) {
+                        <button 
+                            (click)="continueResponse()"
+                            class="w-10 h-10 rounded-xl grid place-items-center text-white bg-emerald-600 hover:bg-emerald-700 transition-colors leading-none">
+                            <fa-icon [icon]="['fas', 'play']" class="text-lg block"></fa-icon>
+                        </button>
+                    } @else {
+                        <button 
+                            (click)="sendMessage(msgInput)" 
+                            class="w-10 h-10 rounded-xl grid place-items-center text-white bg-slate-600 hover:bg-emerald-600 transition-colors leading-none">
                             <fa-icon [icon]="['fas', 'paper-plane']" class="text-lg block"></fa-icon>
-                        }
-                    </button>
+                        </button>
+                    }
                 </div>
             </div>
         </div>
